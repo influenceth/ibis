@@ -1,0 +1,25 @@
+{
+  "name": "@influenceth/ibis",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "ibis": "node ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": "./index.js",
+  "author": "Unstoppable Games, Inc.",
+  "license": "MIT",
+  "devDependencies": {
+    "axios": "^1.4.0",
+    "chalk": "^5.3.0",
+    "key-store": "^1.2.0",
+    "prompt-sync": "^4.2.0",
+    "starknet": "^5.19.0",
+    "yargs": "^17.7.2"
+  }
+}
