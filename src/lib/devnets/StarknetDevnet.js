@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 class StarknetDevnet {
-  async getPredeployedAccountInfo(context, num) {
+  async predeployedAccountInfo(context, num) {
     const { data } = await axios.get(`${context.provider.baseUrl}/predeployed_accounts`);
 
     if (!data[num]) {

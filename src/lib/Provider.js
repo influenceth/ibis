@@ -19,9 +19,9 @@ class Provider extends StarknetProvider {
     }
   }
 
-  async getPredeployedAccountInfo(num) {
+  async predeployedAccountInfo(num) {
     try {
-      return this.devnet.getPredeployedAccountInfo(this, num);
+      return this.devnet.predeployedAccountInfo(this, num);
     } catch (error) {
       console.log(chalk.red(`Predeployed accountsn not implemented for ${this.network}`));
       throw new Error('Predeployed accounts not implemented');

@@ -15,61 +15,55 @@ const ACCOUNTS_FILE = 'accounts.json';
 const KEYS_FILE = 'encrypted.json';
 
 class Accounts {
-  _accounts = {};
+  #accounts = null;
+  #keyStore = null;
 
   constructor(props) {
     this.provider = props.provider;
     this.config = props.config;
-
-    this._loadKeyStore();
-    this._loadAccounts();
   }
 
-  _loadKeyStore() {
-    if (!fs.existsSync(this.keysFile)) {
+  get keyStore() {
+    if (this.#keyStore) return this.#keyStore;
+
+    if (!fs.existsSync(this.#keysFile)) {
       console.log('Initializing private keys file...');
-      fs.writeFileSync(this.keysFile, JSON.stringify({}, null, 2));
+      fs.writeFileSync(this.#keysFile, JSON.stringify({}, null, 2));
     }
 
-    const saveKeys = data => fs.writeFileSync(this.keysFile, JSON.stringify(data), 'utf8');
-    const readKeys = () => JSON.parse(fs.readFileSync(this.keysFile, 'utf8'));
-    this.keyStore = createStore(saveKeys, readKeys());
+    const saveKeys = data => fs.writeFileSync(this.#keysFile, JSON.stringify(data), 'utf8');
+    const readKeys = () => JSON.parse(fs.readFileSync(this.#keysFile, 'utf8'));
+    this.#keyStore = createStore(saveKeys, readKeys());
+
+    return this.#keyStore;
   }
 
-  _loadAccounts() {
-    if (!fs.existsSync(this.accountsFile)) {
+  get accounts() {
+    if (this.#accounts) return this.#accounts;
+
+    if (!fs.existsSync(this.#accountsFile)) {
       console.log('Initializing accounts file...');
-      fs.writeFileSync(this.accountsFile, JSON.stringify({}, null, 2));
+      fs.writeFileSync(this.#accountsFile, JSON.stringify({}, null, 2));
     }
 
     try {
-      const file = fs.readFileSync(this.accountsFile);
-      this._accounts = JSON.parse(file);
+      const file = fs.readFileSync(this.#accountsFile);
+      this.#accounts = JSON.parse(file);
     } catch (error) {
       throw new Error('Failed to read accounts file');
     }
+
+    return this.#accounts;
   }
 
-  slugify(name) {
-    return `${this.config.network}.${name}`;
-  }
+  async accountInfo(name) {
+    const slug = this.#slugify(name);
 
-  get accountsFile() {
-    return path.resolve(process.cwd(), this.config.accountsConfig.path, ACCOUNTS_FILE);
-  }
-
-  get keysFile() {
-    return path.resolve(process.cwd(), this.config.accountsConfig.path, KEYS_FILE);
-  }
-
-  async getAccountInfo(name) {
-    const slug = this.slugify(name);
-
-    if (!this._accounts[slug]) {
+    if (!this.accounts[slug]) {
       return {};
     }
 
-    const account = this._accounts[slug];
+    const account = this.accounts[slug];
 
     if (account.privateKey == 'ENCRYPTED') {
       const password = prompt.hide(chalk.cyan(`Enter password to decrypt ${slug}: `));
@@ -87,18 +81,18 @@ class Accounts {
     return account;
   }
 
-  async getAccount(name) {
+  async account(name) {
     try {
-      const accountInfo = await this.getAccountInfo(name);
+      const accountInfo = await this.accountInfo(name);
       return new Account(this.provider, accountInfo.address, accountInfo.privateKey);
     } catch (error) {
       return;
     }
   }
 
-  async getPredeployedAccount(num = 0) {
+  async predeployedAccount(num = 0) {
     try {
-      const info = await this.provider.getPredeployedAccountInfo(num);
+      const info = await this.provider.predeployedAccountInfo(num);
       return new Account(this.provider, info.address, info.privateKey);
     } catch (error) {
       return;
@@ -106,10 +100,15 @@ class Accounts {
   }
 
   async deploy(name, { encrypted = false } = {}) {
+    if (!name) {
+      console.log(chalk.red('Account name is required'));
+      return;
+    }
+
     const encryptedMsg = encrypted ? ' (encrypted) ' : ' ';
     console.log(chalk.cyan(`Deploying${encryptedMsg}account ${name} on ${this.config.network}...`));
 
-    let accountInfo = await this.getAccountInfo(name);
+    let accountInfo = await this.accountInfo(name);
 
     if (accountInfo.deployed) {
       console.log(chalk.red('Account already exists, please choose a different name'));
@@ -128,8 +127,8 @@ class Accounts {
 
     // Store account info, encrypted if password is provided
     accountInfo = { type: DEFAULT_ACCOUNT_TYPE, address, publicKey, privateKey, deployed: false };
-    const slug = this.slugify(name);
-    this._accounts[slug] = Object.assign({}, accountInfo);
+    const slug = this.#slugify(name);
+    this.accounts[slug] = Object.assign({}, accountInfo);
 
     // Now deploy the account
     if (accountInfo === {} || accountInfo.deployed === true) {
@@ -180,11 +179,23 @@ class Accounts {
     }
 
     console.log('Updating account file with new account info...');
-    this._accounts[slug] = accountInfo;
-    fs.writeFileSync(this.accountsFile, JSON.stringify(this._accounts, null, 2));
+    this.accounts[slug] = accountInfo;
+    fs.writeFileSync(this.#accountsFile, JSON.stringify(this.accounts, null, 2));
 
     console.log(chalk.green(`Account deployed at ${deployedAddress}`));
     return account
+  }
+
+  get #accountsFile() {
+    return path.resolve(process.cwd(), this.config.accountsConfig.path, ACCOUNTS_FILE);
+  }
+
+  get #keysFile() {
+    return path.resolve(process.cwd(), this.config.accountsConfig.path, KEYS_FILE);
+  }
+
+  #slugify(name) {
+    return `${this.config.network}.${name}`;
   }
 }
 

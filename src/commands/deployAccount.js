@@ -6,7 +6,7 @@ const deployAccount = async (args) => {
   const config = new Config(args.network);
   const provider = getProvider(config);
   const accounts = new Accounts({ config, provider });
-  await accounts.deploy(args.name, { encrypted: args.encrypted, overwrite: args.overwrite });
+  await accounts.deploy(args.account, { encrypted: args.encrypted, overwrite: args.overwrite });
 }
 
 export default deployAccount;

@@ -6,7 +6,7 @@ const accountInfo = async function (args) {
   const config = new Config(args.network);
   const provider = getProvider(config);
   const accounts = new Accounts({ config, provider });
-  console.log(await accounts.getAccountInfo(args.name));
+  console.log(await accounts.getAccountInfo(args.account));
 }
 
 export default accountInfo;
