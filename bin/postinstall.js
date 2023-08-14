@@ -5,7 +5,7 @@ import path from 'path';
 import { CONFIG_FILE } from '../src/constants.js';
 
 const accountsDir = path.resolve(os.homedir(), '.ibis');
-const cacheDir = path.resolve(process.cwd(), 'cache');
+const cacheDir = path.resolve(process.cwd(), '../../', 'cache');
 
 // Ensure the accounts directory exists
 if (!fs.existsSync(accountsDir)){
@@ -18,9 +18,9 @@ if (!fs.existsSync(cacheDir)) {
 }
 
 try {
-  fs.readFileSync(path.resolve(process.cwd(), CONFIG_FILE));
+  fs.readFileSync(path.resolve(process.cwd(), '../../', CONFIG_FILE));
 } catch (error) {
-  fs.writeFileSync(path.resolve(process.cwd(), CONFIG_FILE), JSON.stringify({
+  fs.writeFileSync(path.resolve(process.cwd(), '../..', CONFIG_FILE), JSON.stringify({
     accounts: {
       path: accountsDir,
     },
