@@ -45,7 +45,7 @@ class Contracts {
     return this.#cache;
   }
 
-  getDeployed(name, { account = null, contractPackage = null } = {}) {
+  deployed(name, { account = null, contractPackage = null } = {}) {
     const slug = this.#slugify(name, contractPackage);
     const cache = this.cache[slug];
 
