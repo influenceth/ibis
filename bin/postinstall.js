@@ -4,12 +4,19 @@ import path from 'path';
 
 import { CONFIG_FILE } from '../src/constants.js';
 
+const accountsDir = path.resolve(os.homedir(), '.ibis');
+
+// Ensure the accounts directory exists
+if (!fs.existsSync(accountsDir)){
+  fs.mkdirSync(accountsDir);
+}
+
 try {
   fs.readFileSync(path.resolve(process.cwd(), CONFIG_FILE));
 } catch (error) {
   fs.writeFileSync(path.resolve(process.cwd(), CONFIG_FILE), JSON.stringify({
     accounts: {
-      path: path.resolve(os.homedir(), '.ibis'),
+      path: accountsDir,
     },
     contracts: {
       artifacts: './target/dev',
