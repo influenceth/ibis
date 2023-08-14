@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-const CONFIG_FILE = 'ibis.config.json';
+import { CONFIG_FILE } from '../constants.js';
 
 class Config {
   constructor(network) {

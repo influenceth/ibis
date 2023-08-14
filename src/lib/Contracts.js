@@ -3,9 +3,7 @@ import path from 'path';
 import { json, CallData } from 'starknet';
 
 import Contract from './Contract.js';
-
-const ARTIFACTS_FILE = 'Contract.starknet_artifacts.json';
-const CACHE_FILE = 'ibis_contracts.json';
+import { ARTIFACTS_FILE, CACHE_FILE } from '../constants.js';
 
 class Contracts {
   #artifacts = null;

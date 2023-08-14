@@ -1,14 +1,14 @@
 {
   "name": "@influenceth/ibis",
-  "version": "0.1.0",
-  "description": "",
+  "version": "0.1.0-alpha.1",
+  "description": "Super-simple Starknet project management tooling based on Starknet.js",
   "main": "index.js",
   "type": "module",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
-    "ibis": "node ./index.js",
+    "postinstall": "node ./bin/postinstall.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": "./runner.js",

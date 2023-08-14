@@ -7,12 +7,9 @@ import { createStore } from 'key-store'
 import { ec, stark, hash, CallData } from 'starknet';
 
 import Account from './Account.js';
+import { DEFAULT_ACCOUNT_TYPE, DEFAULT_CLASS_HASH, ACCOUNTS_FILE, KEYS_FILE } from '../constants.js';
 
 const prompt = promptSync();
-const DEFAULT_ACCOUNT_TYPE = 'OpenZeppelin-v0.5.1';
-const DEFAULT_CLASS_HASH = '0x4d07e40e93398ed3c76981e72dd1fd22557a78ce36c0515f679e27f0bb5bc5f';
-const ACCOUNTS_FILE = 'accounts.json';
-const KEYS_FILE = 'encrypted.json';
 
 class Accounts {
   #accounts = null;
