@@ -1,6 +1,7 @@
 import fs from 'fs';
+import path from 'path';
 
-const DEFAULT_CONFIG_PATH = '/ibis.config.json';
+const CONFIG_FILE = 'ibis.config.json';
 
 class Config {
   constructor(network) {
@@ -8,7 +9,8 @@ class Config {
     this._config = {};
 
     try {
-      this._config = JSON.parse(fs.readFileSync(process.cwd() + DEFAULT_CONFIG_PATH, 'utf8'));
+      const file = path.resolve(process.cwd(), CONFIG_FILE);
+      this._config = JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch (error) {
       console.error(error);
       throw new Error('Failed to parse Ibis config file');

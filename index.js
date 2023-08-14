@@ -13,7 +13,8 @@ yargs(process.argv.slice(2))
     help: true,
     builder: (y) => {
       y.version(false);
-      y.option('network', { describe: 'Network config ', demand: true });
+      y.option('network', { describe: 'Network config ', alias: 'n', demand: true });
+      y.option('account', { describe: 'Account to use', alias: 'a' })
     },
     handler: openConsole
   })
@@ -23,8 +24,8 @@ yargs(process.argv.slice(2))
     help: true,
     builder: (y) => {
       y.version(false);
-      y.option('network', { describe: 'Network config ', demand: true });
-      y.option('name', { describe: 'Name of the account', demand: true });
+      y.option('network', { describe: 'Network config ', alias: 'n', demand: true });
+      y.option('account', { describe: 'Name of the account', alias: 'a', demand: true });
       y.option('encrypted', { describe: 'Encrypt private key', boolean: true, alias: 'e' })
     },
     handler: deployAccount
@@ -35,8 +36,8 @@ yargs(process.argv.slice(2))
     help: true,
     builder: (y) => {
       y.version(false);
-      y.option('network', { describe: 'Network config ', demand: true });
-      y.option('name', { describe: 'Name of the account', demand: true });
+      y.option('network', { describe: 'Network config ', alias: 'n', demand: true });
+      y.option('account', { describe: 'Name of the account', alias: 'a', demand: true });
     },
     handler: accountInfo
   })
