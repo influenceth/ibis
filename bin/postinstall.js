@@ -5,10 +5,16 @@ import path from 'path';
 import { CONFIG_FILE } from '../src/constants.js';
 
 const accountsDir = path.resolve(os.homedir(), '.ibis');
+const cacheDir = path.resolve(process.cwd(), 'cache');
 
 // Ensure the accounts directory exists
 if (!fs.existsSync(accountsDir)){
   fs.mkdirSync(accountsDir);
+}
+
+// Ensure the cache directory exists
+if (!fs.existsSync(cacheDir)) {
+  fs.mkdirSync(cacheDir);
 }
 
 try {
