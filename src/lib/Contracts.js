@@ -35,6 +35,24 @@ class Contracts {
     return contract;
   }
 
+  /**
+   * Declares the spcified contract
+   * 
+   * @param {String} 
+   * @param {Account} account 
+   * @param {*} param2 
+   * @returns {
+   *  transaction_hash: String,
+   *  class_hash: String 
+   * }
+   */
+  async declare(name, account, { constructorArgs = {}, contractPackage = null } = {}) {
+    const sierra = this.sierra(name, contractPackage);
+    const casm = this.casm(name, contractPackage);
+    const args = { contract: sierra, casm: casm };
+    return account.declare(args);
+  };
+
   async declareAndDeploy(name, account, { constructorArgs = {}, contractPackage = null } = {}) {
     const abi = this.abi(name, contractPackage);
     const sierra = this.sierra(name, contractPackage);
@@ -50,6 +68,7 @@ class Contracts {
     }
 
     return await account.declareAndDeploy(declareAndDeployArgs);
+
   }
 
   abi(contractName, contractPackage = null) {
