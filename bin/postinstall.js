@@ -2,7 +2,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { CONFIG_FILE } from '../constants.js';
+import { CONFIG_FILE } from '../src/constants.js';
 
 try {
   fs.readFileSync(path.resolve(process.cwd(), CONFIG_FILE));
