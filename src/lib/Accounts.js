@@ -138,7 +138,7 @@ class Accounts {
       const { url } = this.config.networkConfig;
       await axios.post(`${url}/mint`, { address: accountInfo.address, amount: 1e18 });
     } else {
-      prompt(`Please pre-fund ${this.accountInfo.address} and press enter to continue after confirmation...`);
+      prompt(`Please pre-fund ${accountInfo.address} and press enter to continue after confirmation...`);
     }
 
     // Deploy the account
