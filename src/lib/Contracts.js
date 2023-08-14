@@ -13,6 +13,7 @@ class Contracts {
 
   constructor(props) {
     this.config = props.config;
+    this.provider = props.provider;
   }
 
   get artifactsPath() {
@@ -36,27 +37,13 @@ class Contracts {
     if (this.#cache) return this.#cache;
 
     try {
-      const file = path.resolve(this.config.contractsConfig.cache, CACHE_FILE);
+      const file = path.resolve(this.config.contractsConfig.cache, `${this.config.network}.${CACHE_FILE}`);
       this.#cache = JSON.parse(fs.readFileSync(file, 'utf8'));
     } catch (error) {
       this.#cache = {};
     }
 
     return this.#cache;
-  }
-
-  deployed(name, { account = null, contractPackage = null } = {}) {
-    const slug = this.#slugify(name, contractPackage);
-    const cache = this.cache[slug];
-
-    if (!cache) {
-      throw new Error('Contract not found in cache');
-    }
-
-    const { address } = cache;
-    const abi = this.abi(name, contractPackage);
-
-    return new Contract(abi, address, account);
   }
 
   /**
@@ -72,8 +59,8 @@ class Contracts {
   async declare(name, { account = null, contractPackage = null } = {}) {
     if (!account) throw new Error('Account not specified');
 
-    const sierra = this.sierra(name, contractPackage);
-    const casm = this.casm(name, contractPackage);
+    const sierra = this.sierra(name, { contractPackage });
+    const casm = this.casm(name, { contractPackage });
     const args = { contract: sierra, casm: casm };
     const res = await account.declare(args);
 
@@ -87,12 +74,27 @@ class Contracts {
     return res;
   };
 
+  deployed(name, { account = null, contractPackage = null } = {}) {
+    const slug = this.#slugify(name, contractPackage);
+    const cache = this.cache[slug];
+
+    if (!cache) {
+      throw new Error('Contract not found in cache');
+    }
+
+    const { address } = cache;
+    const abi = this.abi(name, { contractPackage });
+    const providerOrAccount = account || this.provider;
+
+    return new Contract(abi, address, providerOrAccount);
+  }
+
   async declareAndDeploy(name, { account = null, constructorArgs = {}, contractPackage = null } = {}) {
     if (!account) throw new Error('Account not specified');
 
-    const abi = this.abi(name, contractPackage);
-    const sierra = this.sierra(name, contractPackage);
-    const casm = this.casm(name, contractPackage);
+    const abi = this.abi(name, { contractPackage });
+    const sierra = this.sierra(name, { contractPackage });
+    const casm = this.casm(name, { contractPackage });
     const declareAndDeployArgs = { contract: sierra, casm: casm };
 
     // Check for constructor and format calldata
@@ -120,7 +122,7 @@ class Contracts {
     return res;
   }
 
-  abi(contractName, contractPackage = null) {
+  abi(contractName, { contractPackage = null } = {}) {
     const contract = this.#findArtifacts(contractName, contractPackage);
 
     try {
@@ -131,17 +133,7 @@ class Contracts {
     }
   }
 
-  sierra(contractName, contractPackage = null) {
-    const contract = this.#findArtifacts(contractName, contractPackage);
-
-    try {
-      return json.parse(fs.readFileSync(path.resolve(this.artifactsPath, contract.artifacts.sierra)).toString('ascii'));
-    } catch (error) {
-      throw new Error(`Failed to read compiled contract ${contractName}`);
-    }
-  }
-
-  casm(contractName, contractPackage = null) {
+  casm(contractName, { contractPackage = null } = {}) {
     const contract = this.#findArtifacts(contractName, contractPackage);
 
     try {
@@ -151,16 +143,36 @@ class Contracts {
     }
   }
 
+  classHash(name, { contractPackage = null } = {}) {
+    const slug = this.#slugify(name, contractPackage);
+    const cache = this.cache[slug];
 
-  #cacheContract(name, contractPackage, data) {
+    if (!cache) {
+      throw new Error('Contract not found in cache');
+    }
+
+    return cache.classHash;
+  }
+
+  sierra(contractName, { contractPackage = null } = {}) {
+    const contract = this.#findArtifacts(contractName, contractPackage);
+
+    try {
+      return json.parse(fs.readFileSync(path.resolve(this.artifactsPath, contract.artifacts.sierra)).toString('ascii'));
+    } catch (error) {
+      throw new Error(`Failed to read compiled contract ${contractName}`);
+    }
+  }
+
+  #cacheContract(name, contractPackage = null, data) {
     const slug = this.#slugify(name, contractPackage);
     this.#cache = Object.assign({}, this.cache, { [slug]: data });
-    const file = path.resolve(this.config.contractsConfig.cache, CACHE_FILE);
+    const file = path.resolve(this.config.contractsConfig.cache, `${this.config.network}.${CACHE_FILE}`);
     fs.writeFileSync(file, JSON.stringify(this.cache, (k, v) => typeof v === 'bigint' ? v.toString() : v, 2));
   }
 
   // Finds a contract by name (and package) in the parsed artifacts
-  #findArtifacts(name, contractPackage) {
+  #findArtifacts(name, contractPackage = null) {
     const contract = this.artifacts.find(c => {
       return c.contract_name === name && (contractPackage ? c.package_name === contractPackage : true)
     });
@@ -171,7 +183,7 @@ class Contracts {
 
   #slugify(name, contractPackage = null) {
     let artifactData = this.#findArtifacts(name, contractPackage);
-    return `${this.config.network}.${artifactData.package_name}.${artifactData.contract_name}.${artifactData.id}`;
+    return `${artifactData.package_name}.${artifactData.contract_name}.${artifactData.id}`;
   }
 }
 

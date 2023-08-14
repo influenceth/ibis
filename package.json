@@ -11,7 +11,7 @@
     "ibis": "node ./index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": "./index.js",
+  "bin": "./runner.js",
   "author": "Unstoppable Games, Inc.",
   "license": "MIT",
   "devDependencies": {

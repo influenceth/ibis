@@ -1,45 +1,16 @@
-#!/usr/bin/env node
+import Accounts from './src/lib/Accounts.js';
+import Config from './src/lib/Config.js';
+import Contracts from './src/lib/Contracts.js';
+import Provider from './src/lib/Provider.js';
 
-import yargs from 'yargs/yargs';
+const init = (network) => {
+  const config = new Config(network);
+  const provider = Provider.fromConfig(config);
+  const accounts = new Accounts({ config, provider });
+  const contracts = new Contracts({ config, provider });
 
-import accountInfo from './src/commands/accountInfo.js';
-import deployAccount from './src/commands/deployAccount.js';
-import openConsole from './src/commands/console.js';
+  return { config, provider, accounts, contracts };
+};
 
-yargs(process.argv.slice(2))
-  .command({
-    command: 'console',
-    desc: 'Open the console',
-    help: true,
-    builder: (y) => {
-      y.version(false);
-      y.option('network', { describe: 'Network config ', alias: 'n', demand: true });
-      y.option('account', { describe: 'Account to use', alias: 'a' })
-    },
-    handler: openConsole
-  })
-  .command({
-    command: 'deployAccount',
-    desc: 'Deploy a new account',
-    help: true,
-    builder: (y) => {
-      y.version(false);
-      y.option('network', { describe: 'Network config ', alias: 'n', demand: true });
-      y.option('account', { describe: 'Name of the account', alias: 'a', demand: true });
-      y.option('encrypted', { describe: 'Encrypt private key', boolean: true, alias: 'e' })
-    },
-    handler: deployAccount
-  })
-  .command({
-    command: 'accountInfo',
-    desc: 'Retrieve account info',
-    help: true,
-    builder: (y) => {
-      y.version(false);
-      y.option('network', { describe: 'Network config ', alias: 'n', demand: true });
-      y.option('account', { describe: 'Name of the account', alias: 'a', demand: true });
-    },
-    handler: accountInfo
-  })
-  .help()
-  .parse();
+export { Accounts, Config, Contracts, Provider };
+export default init;

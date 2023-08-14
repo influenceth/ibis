@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { Provider as StarknetProvider } from 'starknet';
+import { Provider as StarknetProvider, constants } from 'starknet';
 import StarknetDevnet from './devnets/starknetDevnet.js';
 
 const DEVNETS = {
@@ -18,6 +18,20 @@ class Provider extends StarknetProvider {
       this.devnet = new DEVNETS[props.network]();
     }
   }
+
+  static fromConfig(config) {
+    if (config.networkConfig.network && constants.NetworkName[config.networkConfig.network]) {
+      return new Provider({
+        sequencer: { network: constants.NetworkName[config.networkConfig.network] },
+        network: config.networkConfig.network
+      });
+    }
+
+    return new Provider({
+      sequencer: { baseUrl: config.networkConfig.url },
+      network: config.networkConfig.network
+    });
+  };
 
   async predeployedAccountInfo(num) {
     try {
