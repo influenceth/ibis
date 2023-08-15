@@ -87,6 +87,7 @@ class Contracts {
   };
 
   deployed(name, { account = null, contractPackage = null } = {}) {
+    if (account && !(account instanceof Account)) throw new Error('Invalid or no account not specified');
     const slug = this.#slugify(name, contractPackage);
     const cache = this.cache[slug];
 
