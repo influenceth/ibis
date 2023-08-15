@@ -53,7 +53,7 @@ class Accounts {
     return this.#accounts;
   }
 
-  async accountInfo(name) {
+  accountInfo(name) {
     const slug = this.#slugify(name);
 
     if (!this.accounts[slug]) {
@@ -80,7 +80,7 @@ class Accounts {
 
   async account(name) {
     try {
-      const accountInfo = await this.accountInfo(name);
+      const accountInfo = this.accountInfo(name);
       return new Account(this.provider, accountInfo.address, accountInfo.privateKey);
     } catch (error) {
       return;
@@ -105,7 +105,7 @@ class Accounts {
     const encryptedMsg = encrypted ? ' (encrypted) ' : ' ';
     console.log(chalk.cyan(`Deploying${encryptedMsg}account ${name} on ${this.config.network}...`));
 
-    let accountInfo = await this.accountInfo(name);
+    let accountInfo = this.accountInfo(name);
 
     if (accountInfo.deployed) {
       console.log(chalk.red('Account already exists, please choose a different name'));

@@ -77,7 +77,9 @@ class Contracts {
     const cache = this.cache[slug];
 
     if (!cache) {
-      throw new Error('Contract not found in cache');
+      const error = new Error('Contract not found in cache');
+      error.errorCode = 'IbisErrorCode.CONTRACT_CACHE_MISS';
+      throw error;
     }
 
     const { address } = cache;
