@@ -105,7 +105,11 @@ class Contracts {
   }
 
   async declareAndDeploy(name, { account = null, constructorArgs = {}, contractPackage = null } = {}) {
-    if (!account) throw new Error('Account not specified');
+    if (!account) {
+      const error = new Error('Account not specified');
+      error.errorCode = 'IbisErrorCode.ACCOUNT_NOT_SPECIFIED';
+      throw error;
+    }
 
     const abi = this.abi(name, { contractPackage });
     const sierra = this.sierra(name, { contractPackage });
@@ -144,7 +148,9 @@ class Contracts {
       return json.parse(fs.readFileSync(path.resolve(this.artifactsPath, contract.artifacts.sierra))
         .toString('ascii')).abi;
     } catch (error) {
-      throw new Error(`Failed to read compiled contract ${contractName}`);
+      const newError = new Error(`Failed to read compiled contract ${contractName}`);
+      newError.errorCode = 'IbisErrorCode.CONTRACT_ABI_NOT_FOUND';
+      throw newError;
     }
   }
 
@@ -154,7 +160,9 @@ class Contracts {
     try {
       return json.parse(fs.readFileSync(path.resolve(this.artifactsPath, contract.artifacts.casm)).toString('ascii'));
     } catch (error) {
-      throw new Error(`Failed to read compiled contract ${contractName}`);
+      const newError = new Error(`Failed to read compiled contract ${contractName}`);
+      newError.errorCode = 'IbisErrorCode.CONTRACT_CASM_NOT_FOUND';
+      throw newError;
     }
   }
 
@@ -163,7 +171,9 @@ class Contracts {
     const cache = this.cache[slug];
 
     if (!cache) {
-      throw new Error('Contract not found in cache');
+      const error = new Error('Contract not found in cache');
+      error.errorCode = 'IbisErrorCode.CONTRACT_CACHE_MISS';
+      throw error;
     }
 
     return cache.classHash;
@@ -175,7 +185,9 @@ class Contracts {
     try {
       return json.parse(fs.readFileSync(path.resolve(this.artifactsPath, contract.artifacts.sierra)).toString('ascii'));
     } catch (error) {
-      throw new Error(`Failed to read compiled contract ${contractName}`);
+      const newError = new Error(`Failed to read compiled contract ${contractName}`);
+      newError.errorCode = 'IbisErrorCode.CONTRACT_SIERRA_NOT_FOUND';
+      throw newError;
     }
   }
 
@@ -192,7 +204,12 @@ class Contracts {
       return c.contract_name === name && (contractPackage ? c.package_name === contractPackage : true)
     });
 
-    if (!contract) throw new Error(`Contract ${name} not found`);
+    if (!contract) {
+      const error = new Error(`Contract ${name} not found`);
+      error.errorCode = 'IbisErrorCode.CONTRACT_ARTIFACT_NOT_FOUND';
+      throw error;
+    }
+
     return contract;
   }
 
