@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import starknet from 'starknet';
+import * as starknet from 'starknet';
 import repl from 'repl';
 
 import Accounts from '../lib/Accounts.js';
@@ -28,5 +28,5 @@ export default async function (args) {
   r.context.provider = Provider.fromConfig(r.context.config);
   r.context.accounts = new Accounts({ config: r.context.config, provider: r.context.provider });
   r.context.contracts = new Contracts({ config: r.context.config, provider: r.context.provider });
-  r.context.starknet = r.context.provider.starknet;
+  r.context.starknet = starknet;
 };
