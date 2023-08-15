@@ -1,9 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { json, CallData } from 'starknet';
-
+import { json, CallData, hash } from 'starknet';
+import Account from './Account.js';
 import Contract from './Contract.js';
 import { ARTIFACTS_FILE, CACHE_FILE } from '../constants.js';
+
 
 class Contracts {
   #artifacts = null;
@@ -55,24 +56,38 @@ class Contracts {
    * }
    */
   async declare(name, { account = null, contractPackage = null } = {}) {
-    if (!account) throw new Error('Account not specified');
+    if (!(account instanceof Account)) throw new Error('Invalid or no account not specified');
 
     const sierra = this.sierra(name, { contractPackage });
     const casm = this.casm(name, { contractPackage });
     const args = { contract: sierra, casm: casm };
-    const res = await account.declare(args);
+    let transaction_hash;
+    let class_hash;
+
+    // attempt to declare, if already declared, use computed class hash
+    try {
+      ({ transaction_hash, class_hash } = await account.declare(args));
+    } catch (error) {
+      if (error.errorCode === 'StarknetErrorCode.CLASS_ALREADY_DECLARED') {
+        console.warn('console already delcared, using computed class hash');
+        class_hash = hash.computeContractClassHash(sierra);
+      } else {
+        throw error;
+      }
+    }
 
     // Update cache
     this.#cacheContract(name, contractPackage, {
       declaredAt: Date.now(),
-      declareTxHash: res.transaction_hash,
-      classHash: res.class_hash
+      declareTxHash: transaction_hash,
+      classHash: class_hash
     });
 
-    return res;
+    return { class_hash, transaction_hash };
   };
 
   deployed(name, { account = null, contractPackage = null } = {}) {
+    if (account && !(account instanceof Account)) throw new Error('Invalid or no account not specified');
     const slug = this.#slugify(name, contractPackage);
     const cache = this.cache[slug];
 
