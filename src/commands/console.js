@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import starknet from 'starknet';
 import repl from 'repl';
 
 import Accounts from '../lib/Accounts.js';
@@ -15,10 +16,11 @@ export default async function (args) {
     ${chalk.cyanBright("  `--'`------' `--'`-----' ")}
 
       Available Globals:
-        ${chalk.whiteBright('accounts')}: Accounts
-        ${chalk.whiteBright('contracts')}: Contracts
-        ${chalk.whiteBright('config')}: Config
+        ${chalk.whiteBright('accounts')}: Accounts factory
+        ${chalk.whiteBright('contracts')}: Contracts factory
+        ${chalk.whiteBright('config')}: Config manager
         ${chalk.whiteBright('provider')}: Provider
+        ${chalk.whiteBright('starknet')}: Starknet.js package
   `);
 
   const r = repl.start({ prompt: chalk.cyanBright('ibis ') + chalk.greenBright('➜ '), ignoreUndefined: true });
@@ -26,4 +28,5 @@ export default async function (args) {
   r.context.provider = Provider.fromConfig(r.context.config);
   r.context.accounts = new Accounts({ config: r.context.config, provider: r.context.provider });
   r.context.contracts = new Contracts({ config: r.context.config, provider: r.context.provider });
+  r.context.starknet = r.context.provider.starknet;
 };

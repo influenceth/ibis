@@ -72,7 +72,6 @@ class Accounts {
         console.log(chalk.red('Incorrect password'));
         return;
       }
-
     }
 
     return account;
