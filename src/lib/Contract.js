@@ -6,15 +6,13 @@ class Contract extends StarknetContract {
   }
 
   // Extend Starknet.js to allow calls with calldata as an object
-  async call(method, calldata, options) {
-    if (typeof calldata === 'object') calldata = this.callData.compile(method, calldata);
-    return await super.call(method, calldata, options);
+  async compileAndcall(method, calldata, options) {
+    return await super.call(method, this.callData.compile(method, calldata), options);
   }
 
   // Extend Starknet.js to allow invokes with calldata as an object
-  async invoke(method, calldata, options) {
-    if (typeof calldata === 'object') calldata = this.callData.compile(method, calldata);
-    return await super.invoke(method, calldata, options);
+  async compileAndinvoke(method, calldata, options) {
+    return await super.invoke(method, this.callData.compile(method, calldata), options);
   }
 }
 
