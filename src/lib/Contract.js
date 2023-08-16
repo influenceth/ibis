@@ -5,9 +5,9 @@ class Contract extends StarknetContract {
     super(...args);
   }
 
-  async compileAndInvoke(method, args, options) {
-    const calldata = this.callData.compile(method, args);
-    return await this.invoke(method, calldata, options);
+  async invoke(method, calldata, options) {
+    if (typeof args === 'object') calldata = this.callData.compile(method, args);
+    return await super.invoke(method, calldata, options);
   }
 }
 
