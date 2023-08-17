@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import { Provider as StarknetProvider, constants } from 'starknet';
-import StarknetDevnet from './devnets/starknetDevnet.js';
+import StarknetDevnet from './devnets/StarknetDevnet.js';
 
 const DEVNETS = {
   devnet: StarknetDevnet
@@ -77,6 +77,15 @@ class Provider extends StarknetProvider {
     } catch (error) {
       console.log(chalk.red(`Setting time not implemented for ${this.network}`));
       throw new Error(`Setting time not implemented for ${this.network}`);
+    }
+  }
+
+  async restart() {
+    try {
+      return this.devnet.restart(this);
+    } catch (error) {
+      console.log(chalk.red(`Restarting not implemented for ${this.network}`));
+      throw new Error(`Restarting not implemented for ${this.network}`);
     }
   }
 }

@@ -24,6 +24,10 @@ class StarknetDevnet {
   async setTime(context, time) {
     await axios.post(`${context.provider.baseUrl}/set_time`, { time });
   }
+
+  async restart(context) {
+    await axios.post(`${context.provider.baseUrl}/restart`);
+  }
 }
 
 export default StarknetDevnet;
