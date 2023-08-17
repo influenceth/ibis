@@ -193,7 +193,8 @@ class Contracts {
 
   #cacheContract(name, contractPackage = null, data) {
     const slug = this.#slugify(name, contractPackage);
-    this.#cache = Object.assign({}, this.cache, { [slug]: data });
+    const current = this.cache[slug] || {};
+    this.#cache[slug] = Object.assign(current, data);
     const file = path.resolve(this.config.contractsConfig.cache, `${this.config.network}.${CACHE_FILE}`);
     fs.writeFileSync(file, JSON.stringify(this.cache, (k, v) => typeof v === 'bigint' ? v.toString() : v, 2));
   }

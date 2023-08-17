@@ -22,7 +22,7 @@ class StarknetDevnet {
   }
 
   async sendMessageToL2(context, message) {
-    await axios.post(`${context.provider.baseUrl}/postman/send_message_to_l2`, message);
+    return await axios.post(`${context.provider.baseUrl}/postman/send_message_to_l2`, message);
   }
 
   async setTime(context, time) {
