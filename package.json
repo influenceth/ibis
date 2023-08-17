@@ -1,6 +1,6 @@
 {
   "name": "@influenceth/ibis",
-  "version": "0.1.0-alpha.18",
+  "version": "0.1.0-alpha.19",
   "description": "Super-simple Starknet project management tooling based on Starknet.js",
   "main": "index.js",
   "type": "module",

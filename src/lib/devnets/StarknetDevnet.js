@@ -21,6 +21,10 @@ class StarknetDevnet {
     return { address: data[num].address, privateKey: data[num].private_key, publicKey: data[num].public_key };
   }
 
+  async sendMessageToL2(context, message) {
+    await axios.post(`${context.provider.baseUrl}/postman/send_message_to_l2`, message);
+  }
+
   async setTime(context, time) {
     await axios.post(`${context.provider.baseUrl}/set_time`, { time });
   }

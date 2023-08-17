@@ -71,6 +71,15 @@ class Provider extends StarknetProvider {
     }
   }
 
+  async sendMessageToL2(message) {
+    try {
+      return this.devnet.sendMessageToL2(this, message);
+    } catch (error) {
+      console.log(chalk.red(`Sending message to L2 not implemented for ${this.network}`));
+      throw new Error(`Sending message to L2 not implemented for ${this.network}`);
+    }
+  }
+
   async setTime(timestamp) {
     try {
       return this.devnet.setTime(this, timestamp);
