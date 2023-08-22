@@ -2,7 +2,7 @@ import axios from 'axios';
 
 class StarknetDevnet {
   async advanceTime(context, time) {
-    await axios.post(`${context.provider.baseUrl}/advance_time`, { time });
+    await axios.post(`${context.provider.baseUrl}/increase_time`, { time });
   }
 
   async createBlock(context) {
