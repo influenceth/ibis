@@ -182,6 +182,30 @@ class Accounts {
     return account
   }
 
+  async encrypt(name) {
+    // Get the account
+    const account = this.accountInfo(name);
+
+    // Encrypt the account
+    const password = prompt.hide(chalk.cyan(`Enter password to encrypt ${slug}: `));
+    const confirm = prompt.hide(chalk.cyan(`Confirm password: `));
+
+    if (password !== confirm) {
+      console.log(chalk.red('Passwords do not match'));
+      return;
+    }
+
+    await this.keyStore.saveKey(slug, password, { privateKey: privateKey });
+    accountInfo.privateKey = 'ENCRYPTED';
+
+    // Overwrite the un-encrypted key
+    console.log('Updating account file with new account info...');
+    this.accounts[slug] = accountInfo;
+    fs.writeFileSync(this.#accountsFile, JSON.stringify(this.accounts, null, 2));
+
+    return account;
+  }
+
   get #accountsFile() {
     return path.resolve(process.cwd(), this.config.accountsConfig.path, ACCOUNTS_FILE);
   }
