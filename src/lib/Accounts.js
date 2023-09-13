@@ -184,7 +184,8 @@ class Accounts {
 
   async encrypt(name) {
     // Get the account
-    const account = this.accountInfo(name);
+    const accountInfo = this.accountInfo(name);
+    const slug = this.#slugify(name);
 
     // Encrypt the account
     const password = prompt.hide(chalk.cyan(`Enter password to encrypt ${slug}: `));
@@ -195,7 +196,7 @@ class Accounts {
       return;
     }
 
-    await this.keyStore.saveKey(slug, password, { privateKey: privateKey });
+    await this.keyStore.saveKey(slug, password, { privateKey: accountInfo.privateKey });
     accountInfo.privateKey = 'ENCRYPTED';
 
     // Overwrite the un-encrypted key
@@ -203,7 +204,7 @@ class Accounts {
     this.accounts[slug] = accountInfo;
     fs.writeFileSync(this.#accountsFile, JSON.stringify(this.accounts, null, 2));
 
-    return account;
+    return accountInfo;
   }
 
   get #accountsFile() {
