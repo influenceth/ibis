@@ -20,17 +20,9 @@ class Provider extends StarknetProvider {
   }
 
   static fromConfig(config) {
-    if (config.networkConfig.network && constants.NetworkName[config.networkConfig.network]) {
-      return new Provider({
-        sequencer: { network: constants.NetworkName[config.networkConfig.network] },
-        network: config.networkConfig.network
-      });
-    }
-
-    return new Provider({
-      sequencer: { baseUrl: config.networkConfig.url },
-      network: config.networkConfig.network
-    });
+    if (!config.networkConfig?.network) throw new Error('No network config provided');
+    if (!config.networkConfig?.provider) throw new Error('No provider config provided');
+    return new Provider(Object.assign({}, config.networkConfig.provider, { network: config.networkConfig.network }));
   };
 
   // Devnet methods
