@@ -80,7 +80,8 @@ class Accounts {
   async account(name) {
     try {
       const accountInfo = this.accountInfo(name);
-      return new Account(this.provider, accountInfo.address, accountInfo.privateKey);
+      const cairoVersion = accountInfo.type === 'OpenZeppelin-v0.5.1' ? 0 : 1;
+      return new Account(this.provider, accountInfo.address, accountInfo.privateKey, cairoVersion);
     } catch (error) {
       return;
     }
@@ -89,7 +90,8 @@ class Accounts {
   async predeployedAccount(num = 0) {
     try {
       const info = await this.provider.predeployedAccountInfo(num);
-      return new Account(this.provider, info.address, info.privateKey);
+      const cairoVersion = accountInfo.type === 'OpenZeppelin-v0.5.1' ? 0 : 1;
+      return new Account(this.provider, info.address, info.privateKey, cairoVersion);
     } catch (error) {
       return;
     }
@@ -141,7 +143,8 @@ class Accounts {
     }
 
     // Deploy the account
-    const account = new Account(this.provider, accountInfo.address, accountInfo.privateKey);
+    const cairoVersion = DEFAULT_ACCOUNT_TYPE === 'OpenZeppelin-v0.5.1' ? 0 : 1;
+    const account = new Account(this.provider, accountInfo.address, accountInfo.privateKey, cairoVersion);
     let deployedAddress;
 
     try {

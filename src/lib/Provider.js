@@ -1,12 +1,12 @@
 import chalk from 'chalk';
-import { Provider as StarknetProvider, constants } from 'starknet';
+import { RpcProvider, constants } from 'starknet';
 import StarknetDevnet from './devnets/StarknetDevnet.js';
 
 const DEVNETS = {
   devnet: StarknetDevnet
 };
 
-class Provider extends StarknetProvider {
+class Provider extends RpcProvider {
   constructor(props) {
     super(props);
 

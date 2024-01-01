@@ -31,10 +31,15 @@ try {
     networks: {
       devnet: {
         network: 'devnet',
-        url: 'http://127.0.0.1:5050'
+        provider: {
+          nodeUrl: 'http://127.0.0.1:5050'
+        }
       },
       testnet: {
         network: 'SN_GOERLI'
+      },
+      sepolia: {
+        network: 'SN_SEPOLIA'
       },
       mainnet: {
         network: 'SN_MAIN'
