@@ -69,7 +69,7 @@ class Contracts {
       ({ transaction_hash, class_hash } = await account.declare(args));
     } catch (error) {
       if (error.errorCode === 'StarknetErrorCode.CLASS_ALREADY_DECLARED') {
-        console.warn('console already delcared, using computed class hash');
+        console.warn('class already delcared, using computed class hash');
         class_hash = hash.computeContractClassHash(sierra);
       } else {
         throw error;
