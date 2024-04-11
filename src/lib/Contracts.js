@@ -55,7 +55,7 @@ class Contracts {
    *  class_hash: String
    * }
    */
-  async declare(name, { account = null, contractPackage = null } = {}) {
+  async declare(name, { account = null, contractPackage = null } = {}, options = {}) {
     if (!(account instanceof Account)) throw new Error('Invalid or no account not specified');
 
     const sierra = this.sierra(name, { contractPackage });
@@ -66,7 +66,7 @@ class Contracts {
 
     // attempt to declare, if already declared, use computed class hash
     try {
-      ({ transaction_hash, class_hash } = await account.declare(args));
+      ({ transaction_hash, class_hash } = await account.declare(args, options));
     } catch (error) {
       if (error.errorCode === 'StarknetErrorCode.CLASS_ALREADY_DECLARED') {
         console.warn('class already delcared, using computed class hash');
@@ -104,7 +104,7 @@ class Contracts {
     return new Contract(abi, address, providerOrAccount);
   }
 
-  async declareAndDeploy(name, { account = null, constructorArgs = {}, contractPackage = null } = {}) {
+  async declareAndDeploy(name, { account = null, constructorArgs = {}, contractPackage = null } = {}, options = {}) {
     if (!account) {
       const error = new Error('Account not specified');
       error.errorCode = 'IbisErrorCode.ACCOUNT_NOT_SPECIFIED';
@@ -124,7 +124,7 @@ class Contracts {
       declareAndDeployArgs.constructorCalldata = calldata.compile('constructor', constructorArgs);
     }
 
-    const res = await account.declareAndDeploy(declareAndDeployArgs);
+    const res = await account.declareAndDeploy(declareAndDeployArgs, options);
 
     // Update cache
     this.#cacheContract(name, contractPackage, {
