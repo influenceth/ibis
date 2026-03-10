@@ -4,6 +4,14 @@ import { json, CallData, hash } from 'starknet';
 import Account from './Account.js';
 import Contract from './Contract.js';
 import { ARTIFACTS_FILE, CACHE_FILE } from '../constants.js';
+import {
+  deployDeclaredClass,
+  extractClassHash,
+  extractTxHash,
+  isClassAlreadyDeclared,
+  normalizeDeclareAndDeployResult,
+  normalizeDeclareResult
+} from './starknetCompat.js';
 
 
 class Contracts {
@@ -66,9 +74,9 @@ class Contracts {
 
     // attempt to declare, if already declared, use computed class hash
     try {
-      ({ transaction_hash, class_hash } = await account.declare(args, options));
+      ({ transaction_hash, class_hash } = normalizeDeclareResult(await account.declare(args, options)));
     } catch (error) {
-      if (error.errorCode === 'StarknetErrorCode.CLASS_ALREADY_DECLARED') {
+      if (isClassAlreadyDeclared(error)) {
         console.warn('class already delcared, using computed class hash');
         class_hash = hash.computeContractClassHash(sierra);
       } else {
@@ -124,7 +132,22 @@ class Contracts {
       declareAndDeployArgs.constructorCalldata = calldata.compile('constructor', constructorArgs);
     }
 
-    const res = await account.declareAndDeploy(declareAndDeployArgs, options);
+    let res;
+    if (typeof account.declareAndDeploy === 'function') {
+      res = normalizeDeclareAndDeployResult(await account.declareAndDeploy(declareAndDeployArgs, options));
+    } else {
+      const declareRes = await this.declare(name, { account, contractPackage }, options);
+      const classHash = extractClassHash(declareRes);
+      const deployRes = await deployDeclaredClass({
+        account,
+        classHash,
+        abi,
+        constructorCalldata: declareAndDeployArgs.constructorCalldata,
+        options
+      });
+
+      res = normalizeDeclareAndDeployResult({ declare: declareRes, deploy: deployRes });
+    }
 
     // Update cache
     this.#cacheContract(name, contractPackage, {
@@ -132,9 +155,9 @@ class Contracts {
       classHash: res.declare.class_hash,
       constructorArgs: constructorArgs,
       declaredAt: Date.now(),
-      declareTxHash: res.declare.transaction_hash,
+      declareTxHash: extractTxHash(res.declare),
       deployedAt: Date.now(),
-      deployTxHash: res.deploy.transaction_hash,
+      deployTxHash: extractTxHash(res.deploy),
       deployer: account.address
     });
 

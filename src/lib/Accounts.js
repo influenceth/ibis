@@ -8,6 +8,7 @@ import { ec, stark, hash, CallData } from 'starknet';
 
 import Account from './Account.js';
 import { DEFAULT_ACCOUNT_TYPE, DEFAULT_CLASS_HASH, ACCOUNTS_FILE, KEYS_FILE } from '../constants.js';
+import { extractContractAddress, extractTxHash, stripRpcPath } from './starknetCompat.js';
 
 const prompt = promptSync();
 
@@ -89,9 +90,10 @@ class Accounts {
 
   async predeployedAccount(num = 0) {
     try {
-      const info = await this.provider.predeployedAccountInfo(num);
+      const accountInfo = await this.provider.predeployedAccountInfo(num);
+      if (!accountInfo) return;
       const cairoVersion = accountInfo.type === 'OpenZeppelin-v0.5.1' ? 0 : 1;
-      return new Account(this.provider, info.address, info.privateKey, cairoVersion);
+      return new Account(this.provider, accountInfo.address, accountInfo.privateKey, cairoVersion);
     } catch (error) {
       return;
     }
@@ -117,14 +119,20 @@ class Accounts {
     const privateKey = stark.randomAddress();
     const publicKey = ec.starkCurve.getStarkKey(privateKey);
 
+    const accountType = this.#defaultAccountType;
+    const classHash = this.#defaultClassHash;
+
+    // Validate configured class hash before asking user to pre-fund mainnet/sepolia accounts.
+    await this.#assertDeclaredClassHash(classHash);
+
     // Calculate future address of the account
     const accountConstructorCallData = CallData.compile({ publicKey });
     const address = hash.calculateContractAddressFromHash(
-        publicKey, DEFAULT_CLASS_HASH, accountConstructorCallData, 0
+        publicKey, classHash, accountConstructorCallData, 0
     );
 
     // Store account info, encrypted if password is provided
-    accountInfo = { type: DEFAULT_ACCOUNT_TYPE, address, publicKey, privateKey, deployed: false };
+    accountInfo = { type: accountType, address, publicKey, privateKey, deployed: false };
     const slug = this.#slugify(name);
     this.accounts[slug] = Object.assign({}, accountInfo);
 
@@ -134,28 +142,41 @@ class Accounts {
       return;
     }
 
-    // Fund accounts created on devnet with 1 ETH
+    // Fund accounts created on devnet with 1 STRK-equivalent fee amount.
     if (this.config.network === 'devnet') {
-      const { url } = this.config.networkConfig;
-      await axios.post(`${url}/mint`, { address: accountInfo.address, amount: 1e18 });
+      const baseUrl = stripRpcPath(
+        this.provider.baseUrl
+        || this.config.networkConfig?.url
+        || this.config.networkConfig?.provider?.nodeUrl
+      );
+
+      if (!baseUrl) {
+        throw new Error('Unable to resolve devnet base URL for minting');
+      }
+
+      await axios.post(`${baseUrl}/mint`, { address: accountInfo.address, amount: 1e18 });
     } else {
-      prompt(`Please pre-fund ${accountInfo.address} and press enter to continue after confirmation...`);
+      prompt(`Please pre-fund ${accountInfo.address} with STRK and press enter to continue after confirmation...`);
     }
 
     // Deploy the account
-    const cairoVersion = DEFAULT_ACCOUNT_TYPE === 'OpenZeppelin-v0.5.1' ? 0 : 1;
+    const cairoVersion = accountType === 'OpenZeppelin-v0.5.1' ? 0 : 1;
     const account = new Account(this.provider, accountInfo.address, accountInfo.privateKey, cairoVersion);
     let deployedAddress;
 
     try {
       const result = await account.deployAccount({
-          classHash: DEFAULT_CLASS_HASH,
+          classHash,
           constructorCalldata: accountConstructorCallData,
           addressSalt: accountInfo.publicKey
       });
 
-      await this.provider.waitForTransaction(result.transaction_hash);
-      deployedAddress = result.contract_address;
+      const transactionHash = extractTxHash(result);
+      deployedAddress = extractContractAddress(result) || accountInfo.address;
+
+      if (transactionHash) {
+        await this.provider.waitForTransaction(transactionHash);
+      }
     } catch (error) {
       console.log(chalk.red('Account already deployed at this address'));
       return;
@@ -220,6 +241,27 @@ class Accounts {
 
   #slugify(name) {
     return `${this.config.network}.${name}`;
+  }
+
+  get #defaultClassHash() {
+    return this.config.networkConfig?.accountClassHash || DEFAULT_CLASS_HASH;
+  }
+
+  get #defaultAccountType() {
+    return this.config.networkConfig?.accountType || DEFAULT_ACCOUNT_TYPE;
+  }
+
+  async #assertDeclaredClassHash(classHash) {
+    if (this.config.network === 'devnet') return;
+
+    try {
+      await this.provider.getClass(classHash);
+    } catch (error) {
+      throw new Error(
+        `Configured account class hash ${classHash} is not declared on ${this.config.network}. ` +
+        `Set networks.${this.config.network}.accountClassHash in ibis.config.json to a declared class hash.`
+      );
+    }
   }
 }
 

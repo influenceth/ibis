@@ -1,9 +1,30 @@
 import chalk from 'chalk';
-import { RpcProvider, constants } from 'starknet';
+import { RpcProvider } from 'starknet';
 import StarknetDevnet from './devnets/StarknetDevnet.js';
+import { normalizeNodeUrl, stripRpcPath } from './starknetCompat.js';
 
 const DEVNETS = {
   devnet: StarknetDevnet
+};
+
+const DEFAULT_RPC_ENDPOINTS = {
+  SN_MAIN: 'https://starknet-mainnet.public.blastapi.io',
+  SN_SEPOLIA: 'https://starknet-sepolia.public.blastapi.io',
+  SN_GOERLI: 'https://alpha4.starknet.io'
+};
+
+const resolveNetworkName = (network) => {
+  if (!network) return null;
+  if (network === 'mainnet') return 'SN_MAIN';
+  if (network === 'sepolia' || network === 'testnet') return 'SN_SEPOLIA';
+  if (network === 'devnet') return 'devnet';
+  return network;
+};
+
+const resolveRpcUrl = (networkConfig = {}) => {
+  const network = resolveNetworkName(networkConfig.network);
+  if (network === 'devnet') return 'http://127.0.0.1:5050';
+  return DEFAULT_RPC_ENDPOINTS[network] || null;
 };
 
 class Provider extends RpcProvider {
@@ -17,12 +38,28 @@ class Provider extends RpcProvider {
     if (DEVNETS[props.network]) {
       this.devnet = new DEVNETS[props.network]();
     }
+
+    this.baseUrl = props.baseUrl || stripRpcPath(props.nodeUrl || '');
   }
 
   static fromConfig(config) {
     if (!config.networkConfig?.network) throw new Error('No network config provided');
-    if (!config.networkConfig?.provider) throw new Error('No provider config provided');
-    return new Provider(Object.assign({}, config.networkConfig.provider, { network: config.networkConfig.network }));
+
+    const providerConfig = Object.assign({}, config.networkConfig.provider || {});
+    const rpcVersion = providerConfig.rpcVersion || config.networkConfig.rpcVersion || '0.10';
+    const fallbackRpc = resolveRpcUrl(config.networkConfig);
+
+    if (!providerConfig.nodeUrl && fallbackRpc) {
+      providerConfig.nodeUrl = fallbackRpc;
+    }
+
+    if (!providerConfig.nodeUrl) {
+      throw new Error('No provider config provided');
+    }
+
+    providerConfig.nodeUrl = normalizeNodeUrl(providerConfig.nodeUrl, rpcVersion);
+    providerConfig.baseUrl = stripRpcPath(providerConfig.nodeUrl);
+    return new Provider(Object.assign({}, providerConfig, { network: config.networkConfig.network }));
   };
 
   // Devnet methods

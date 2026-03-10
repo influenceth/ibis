@@ -1,0 +1,39 @@
+{
+  "accounts": {
+    "path": "/Users/clexmond/.ibis"
+  },
+  "contracts": {
+    "artifacts": "./target/dev",
+    "cache": "./cache"
+  },
+  "networks": {
+    "devnet": {
+      "network": "devnet",
+      "rpcVersion": "0.10",
+      "provider": {
+        "nodeUrl": "http://127.0.0.1:5050"
+      }
+    },
+    "testnet": {
+      "network": "SN_SEPOLIA",
+      "rpcVersion": "0.10",
+      "provider": {
+        "nodeUrl": "https://starknet-sepolia.public.blastapi.io"
+      }
+    },
+    "sepolia": {
+      "network": "SN_SEPOLIA",
+      "rpcVersion": "0.10",
+      "provider": {
+        "nodeUrl": "https://starknet-sepolia.public.blastapi.io"
+      }
+    },
+    "mainnet": {
+      "network": "SN_MAIN",
+      "rpcVersion": "0.10",
+      "provider": {
+        "nodeUrl": "https://rpc.influenceth.io"
+      }
+    }
+  }
+}
