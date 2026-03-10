@@ -13,6 +13,31 @@ import {
   normalizeDeclareResult
 } from './starknetCompat.js';
 
+const hasContractShape = (value) => {
+  return Boolean(
+    value
+    && typeof value === 'object'
+    && typeof value.contract_name === 'string'
+    && value.artifacts
+  );
+};
+
+const flattenContracts = (value) => {
+  if (Array.isArray(value)) {
+    return value.flatMap(flattenContracts);
+  }
+
+  if (hasContractShape(value)) {
+    return [value];
+  }
+
+  if (value && typeof value === 'object') {
+    return Object.values(value).flatMap(flattenContracts);
+  }
+
+  return [];
+};
+
 
 class Contracts {
   #artifacts = null;
@@ -32,9 +57,10 @@ class Contracts {
 
     try {
       const file = path.resolve(this.config.contractsConfig.artifacts, ARTIFACTS_FILE);
-      this.#artifacts = JSON.parse(fs.readFileSync(file, 'utf8')).contracts;
+      const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+      this.#artifacts = flattenContracts(parsed?.contracts ?? parsed);
     } catch (error) {
-      this.#artifacts = {};
+      this.#artifacts = [];
     }
 
     return this.#artifacts;

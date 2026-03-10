@@ -40,6 +40,16 @@ class Contract extends StarknetContract {
   async compileAndInvoke(method, calldata, options) {
     return await super.invoke(method, this.#compile(method, calldata), options);
   }
+
+  // Backward compatibility: starknet.js v8 removed Contract.connect().
+  connect(providerOrAccount) {
+    if (!providerOrAccount) {
+      throw new Error('Provider or account is required');
+    }
+
+    this.providerOrAccount = providerOrAccount;
+    return this;
+  }
 }
 
 export default Contract;

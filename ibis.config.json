@@ -18,14 +18,14 @@
       "network": "SN_SEPOLIA",
       "rpcVersion": "0.10",
       "provider": {
-        "nodeUrl": "https://starknet-sepolia.public.blastapi.io"
+        "nodeUrl": "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/xXj7NBAAcNK-Cw1yzgnKZ"
       }
     },
     "sepolia": {
       "network": "SN_SEPOLIA",
       "rpcVersion": "0.10",
       "provider": {
-        "nodeUrl": "https://starknet-sepolia.public.blastapi.io"
+        "nodeUrl": "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_10/xXj7NBAAcNK-Cw1yzgnKZ"
       }
     },
     "mainnet": {
