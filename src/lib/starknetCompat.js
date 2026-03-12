@@ -21,7 +21,20 @@ export const normalizeRpcVersion = (version = '0.10') => {
 
 export const normalizeNodeUrl = (url, rpcVersion = '0.10') => {
   if (!url) return url;
-  if (!url.includes('/rpc')) return `${url.replace(/\/$/, '')}/rpc/v${normalizeRpcVersion(rpcVersion)}`;
+  let hasRpcPath = false;
+
+  try {
+    hasRpcPath = new URL(url).pathname.includes('/rpc');
+  } catch (error) {
+    hasRpcPath = url.includes('/rpc');
+  }
+
+  if (rpcVersion === 'devnet') {
+    const base = stripRpcPath(url).replace(/\/$/, '');
+    return `${base}/rpc`;
+  }
+
+  if (!hasRpcPath) return `${url.replace(/\/$/, '')}/rpc/v${normalizeRpcVersion(rpcVersion)}`;
   if (/\/rpc\/v\d+_\d+/.test(url)) return url;
   if (url.endsWith('/rpc')) return `${url}/v${normalizeRpcVersion(rpcVersion)}`;
   return url;

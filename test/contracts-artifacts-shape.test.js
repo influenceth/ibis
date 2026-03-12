@@ -89,3 +89,40 @@ test('contracts.deployed works when Contract.starknet_artifacts.json contracts i
   const deployed = contracts.deployed('Dispatcher');
   assert.equal(deployed.address, '0x123');
 });
+
+test('contracts.classHash throws cache ambiguity error when multiple package slugs match', (t) => {
+  const tempDir = withTempCwd(t);
+  const artifactsDir = path.join(tempDir, 'target/dev');
+  const cacheDir = path.join(tempDir, 'cache');
+  fs.mkdirSync(artifactsDir, { recursive: true });
+  fs.mkdirSync(cacheDir, { recursive: true });
+
+  fs.writeFileSync(
+    path.join(artifactsDir, ARTIFACTS_FILE),
+    JSON.stringify({ contracts: [] }, null, 2)
+  );
+
+  fs.writeFileSync(
+    path.join(cacheDir, `sepolia.${CACHE_FILE}`),
+    JSON.stringify({
+      'influence.Dispatcher.a': { address: '0x1', classHash: '0xaa' },
+      'other.Dispatcher.b': { address: '0x2', classHash: '0xbb' }
+    }, null, 2)
+  );
+
+  const contracts = new Contracts({
+    config: {
+      network: 'sepolia',
+      contractsConfig: {
+        artifacts: artifactsDir,
+        cache: cacheDir
+      }
+    },
+    provider: {}
+  });
+
+  assert.throws(
+    () => contracts.classHash('Dispatcher'),
+    (error) => error?.errorCode === 'IbisErrorCode.CONTRACT_CACHE_AMBIGUOUS'
+  );
+});

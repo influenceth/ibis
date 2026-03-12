@@ -116,3 +116,32 @@ test('accounts.deploy honors network accountType and accountClassHash overrides'
   assert.equal(rawAccounts['devnet.bob'].type, overrideType);
   assert.equal(rawAccounts['devnet.bob'].deployed, true);
 });
+
+test('accounts.deploy fails early on non-devnet when class hash is not declared', async (t) => {
+  const tempDir = withTempCwd(t);
+
+  const config = {
+    network: 'sepolia',
+    accountsConfig: { path: tempDir },
+    networkConfig: {
+      network: 'sepolia',
+      accountClassHash: '0xdeadbeef',
+      provider: {
+        nodeUrl: 'https://example.invalid'
+      }
+    }
+  };
+
+  const provider = {
+    getClass: async () => {
+      throw new Error('class hash not found');
+    }
+  };
+
+  const accounts = new Accounts({ config, provider });
+
+  await assert.rejects(
+    () => accounts.deploy('carol'),
+    /Configured account class hash 0xdeadbeef is not declared on sepolia/
+  );
+});

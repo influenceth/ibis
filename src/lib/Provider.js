@@ -57,7 +57,9 @@ class Provider extends RpcProvider {
       throw new Error('No provider config provided');
     }
 
-    providerConfig.nodeUrl = normalizeNodeUrl(providerConfig.nodeUrl, rpcVersion);
+    const network = resolveNetworkName(config.networkConfig.network);
+    const urlVersion = network === 'devnet' ? 'devnet' : rpcVersion;
+    providerConfig.nodeUrl = normalizeNodeUrl(providerConfig.nodeUrl, urlVersion);
     providerConfig.baseUrl = stripRpcPath(providerConfig.nodeUrl);
     return new Provider(Object.assign({}, providerConfig, { network: config.networkConfig.network }));
   };

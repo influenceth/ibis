@@ -122,7 +122,7 @@ class Contracts {
 
   deployed(name, { account = null, contractPackage = null } = {}) {
     if (account && !(account instanceof Account)) throw new Error('Invalid or no account not specified');
-    const slug = this.#slugify(name, contractPackage);
+    const slug = this.#slugify(name, contractPackage, { allowCacheFallback: true });
     const cache = this.cache[slug];
 
     if (!cache) {
@@ -216,7 +216,7 @@ class Contracts {
   }
 
   classHash(name, { contractPackage = null } = {}) {
-    const slug = this.#slugify(name, contractPackage);
+    const slug = this.#slugify(name, contractPackage, { allowCacheFallback: true });
     const cache = this.cache[slug];
 
     if (!cache) {
@@ -263,9 +263,39 @@ class Contracts {
     return contract;
   }
 
-  #slugify(name, contractPackage = null) {
+  #slugify(name, contractPackage = null, { allowCacheFallback = false } = {}) {
+    if (allowCacheFallback) {
+      const fromCache = this.#cacheSlug(name, contractPackage);
+      if (fromCache) return fromCache;
+    }
+
     let artifactData = this.#findArtifacts(name, contractPackage);
     return `${artifactData.package_name}.${artifactData.contract_name}.${artifactData.id}`;
+  }
+
+  #cacheSlug(name, contractPackage = null) {
+    const matches = Object.keys(this.cache).filter((slug) => {
+      const parts = slug.split('.');
+      if (parts.length < 3) return false;
+
+      const [pkg, contractName] = parts;
+      if (contractName !== name) return false;
+      if (contractPackage && pkg !== contractPackage) return false;
+
+      return true;
+    });
+
+    if (matches.length === 1) {
+      return matches[0];
+    }
+
+    if (matches.length > 1 && !contractPackage) {
+      const error = new Error(`Multiple cached contracts named ${name} found; specify contract package`);
+      error.errorCode = 'IbisErrorCode.CONTRACT_CACHE_AMBIGUOUS';
+      throw error;
+    }
+
+    return null;
   }
 }
 
