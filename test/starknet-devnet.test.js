@@ -4,6 +4,55 @@ import assert from 'node:assert/strict';
 import axios from 'axios';
 import StarknetDevnet from '../src/lib/devnets/StarknetDevnet.js';
 
+test('advanceTime uses devnet_increaseTime RPC', async (t) => {
+  const devnet = new StarknetDevnet();
+  const originalPost = axios.post;
+  let request = null;
+
+  axios.post = async (url, payload) => {
+    request = { url, payload };
+    return { data: { result: { timestamp_increased_by: 60 } } };
+  };
+
+  t.after(() => {
+    axios.post = originalPost;
+  });
+
+  await devnet.advanceTime({ baseUrl: 'http://127.0.0.1:5050' }, 60);
+
+  assert.deepEqual(request, {
+    url: 'http://127.0.0.1:5050/rpc',
+    payload: {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'devnet_increaseTime',
+      params: { time: 60 }
+    }
+  });
+});
+
+test('advanceTime throws rpc error message', async (t) => {
+  const devnet = new StarknetDevnet();
+  const originalPost = axios.post;
+
+  axios.post = async () => ({
+    data: {
+      error: {
+        message: 'cannot increase time'
+      }
+    }
+  });
+
+  t.after(() => {
+    axios.post = originalPost;
+  });
+
+  await assert.rejects(
+    () => devnet.advanceTime({ baseUrl: 'http://127.0.0.1:5050' }, 60),
+    /cannot increase time/
+  );
+});
+
 test('predeployedAccountInfo uses devnet_getPredeployedAccounts RPC and maps keys', async (t) => {
   const devnet = new StarknetDevnet();
   const originalPost = axios.post;

@@ -10,7 +10,16 @@ class StarknetDevnet {
   }
 
   async advanceTime(context, time) {
-    await axios.post(`${this.#baseUrl(context)}/increase_time`, { time });
+    const { data } = await axios.post(this.#rpcUrl(context), {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'devnet_increaseTime',
+      params: { time }
+    });
+
+    if (data?.error) {
+      throw new Error(data.error.message || 'devnet_increaseTime failed');
+    }
   }
 
   async createBlock(context) {
