@@ -42,7 +42,25 @@ class StarknetDevnet {
   }
 
   async sendMessageToL2(context, message) {
-    return await axios.post(`${this.#baseUrl(context)}/postman/send_message_to_l2`, message);
+    const { data } = await axios.post(this.#rpcUrl(context), {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'devnet_postmanSendMessageToL2',
+      params: message
+    });
+
+    if (data?.error) {
+      throw new Error(data.error.message || 'devnet_postmanSendMessageToL2 failed');
+    }
+
+    // keep existing call sites working (they expect axios-like { data: ... })
+    const result = data?.result || {};
+    return {
+      data: {
+        ...result,
+        transaction_hash: result.transaction_hash || result.tx_hash
+      }
+    };
   }
 
   async setTime(context, time) {
